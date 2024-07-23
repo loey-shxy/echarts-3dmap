@@ -1,0 +1,29 @@
+{
+	"compilerOptions": {
+		"module": "ESNext",
+		"target": "ESNext",
+		"moduleResolution": "Node",
+		"strict": true,
+		"skipLibCheck": true,
+		"jsx": "preserve",
+		"jsxImportSource": "vue",
+		"noEmit": true,
+		"resolveJsonModule": true,
+		"isolatedModules": true,
+		"allowImportingTsExtensions": true,
+		"sourceMap": true,
+		"esModuleInterop": true,
+		"baseUrl": "./",
+		"types": ["vite/client", "node"],
+		"paths": {
+			"@/*": ["src/*"]
+		},
+		"lib": ["ESNext", "DOM", "WebWorker"]
+	},
+	"include": [
+		"src/**/*",
+		"src/**/*.vue",
+		"src/**/*.tsx",
+		"node_modules/unplugin-auto-import/auto-imports.d.ts",
+	]
+}
