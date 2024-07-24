@@ -6,19 +6,23 @@
   
 <script setup lang='ts'>
 import * as echarts from 'echarts'
+import 'echarts-gl'
 import { cloneDeep, uniq } from 'lodash-es'
 import { ref, onMounted } from 'vue'
+import { getMapSeries } from './utils/utils'
+import locationImg from './assets/location-active.png'
+import bgImg from './assets/bg.png'
+import bgSelectedImg from './assets/bg-selected.png'
 import mapMeta from "./map/meta.json"
 import mapMetaReverse from "./map/meta_r.json"
 import mapMetaFull from "./map/meta_full.json"
-import metaCoord from "./map/meta_coord.json"
-import { getMapSeries } from './utils/utils'
 
 const rootMapCode = '810000'
 const mapRef = ref()
 const mapChart = ref()
 const currentMapCode = ref(rootMapCode)
 const mapSeries = ref([])
+
 const defaultMapRegionOptions = ref({
   name: '香港特别行政区',
   itemStyle: {
@@ -29,8 +33,28 @@ const defaultMapRegionOptions = ref({
     show: false
   }
 })
+
 const mapRegions = ref([cloneDeep(defaultMapRegionOptions.value)])
 const lastVisitSection = ref()
+
+const projectList = ref([
+  {
+    name: 'BJZ 启德新急症医院',
+    value: [114.218878,22.320799],
+  },
+  {
+    name: 'BLA 西铁锦上路站第一期物业发展项目',
+    value: [114.067621, 22.431619],
+  },
+  {
+    name: 'BLM 马鞍山86B区恒泰路第二期项目',
+    value: [114.228735, 22.410761],
+  },
+  {
+    name: 'BLX 马鞍山86B区恒泰路第二期项目',
+    value: [114.227735, 22.410761],
+  },
+])
 
 const registerMaps = async () => {
     echarts.registerMap(`m${rootMapCode}`, await import(`./map/${rootMapCode}.json`))
@@ -38,164 +62,142 @@ const registerMaps = async () => {
     //     echarts.registerMap(`m${code}`, await import(`./map/${code}.json`))
     // }
 }
-import bgImg from './assets/bg.png'
+
 const generateMapOption = () => {
-  var image = document.createElement("img");
-   image.src = bgImg
+  const image = document.createElement("img");
+  image.src = bgImg
+  const imageSelecte = document.createElement("img");
+  imageSelecte.src = bgImg
 
     return {
-        geo: [
-          {
+      geo3D: {
+        map: `m${currentMapCode.value}`,
+        viewControl: {
+            // autoRotate: true,
+            distance: 150,
+            center: [-2, -5, 0]
+         },
+         itemStyle: {
+            color: '#539efe',
+            borderWidth: 1,
+            borderColor: '#4fdcf7'
+         },
+         label: {
             show: true,
-            map: `m${currentMapCode.value}`,
-            roam: false,
-            zoom: 1.2,
-            aspectScale: 1.2,
-            scaleLimit: {
-                min: 0.1,
-                max: 12,
-            },
-            itemStyle: {
-              color: {
-                image: image,
-                repeat: 'repeat'
-              },
-              borderColor: 'rgba(226, 230, 245, 1)',
-              borderWidth: 2,
-            },
-            emphasis: {
-              itemStyle: {
-                color: {
-                  image: image,
-                  repeat: 'repeat'
-                },
-                areaColor: '#E6F0FF',
-                borderColor: '#A5B0E5',
-                borderWidth: 1,
-                shadowColor: 'rgba(9, 41, 121, 0.5)',
-                shadowOffsetY: 5,
-              },
-            },
-            z: 10,
-            regions: mapRegions.value
-          },
-          {
-            type: "map",
-            map: `m${currentMapCode.value}`,
-            zlevel: -1,
-            roam: false,
-            zoom: 1.2,
-            aspectScale: 1.2,
-            scaleLimit: {
-                min: 0.1,
-                max: 12,
-            },
-            itemStyle: {
-              areaColor: '#ffffff',
-              borderColor: 'rgba(226, 230, 245, 1)',
-              borderWidth: 2,
-              shadowColor: 'rgba(0, 32, 160, 0.2)',
-              shadowOffsetY: 0,
-            },
-          },
-          {
-              type: "map",
-              map: `m${currentMapCode.value}`,
-              zlevel: -2,
-              roam: false,
-              zoom: 1.2,
-              aspectScale: 1.2,
-              scaleLimit: {
-                  min: 0.1,
-                  max: 12,
-              },
-              itemStyle: {
-                shadowColor: 'rgba(9, 41, 121, 0.2)',
-                shadowOffsetY: 8,
-                shadowBlur: 8
-              },
-          }
-        ],
-        series: mapSeries.value,
-    }
-}
-
-const getMapByCode = (code) => {
-    return echarts.getMap(`m${code}`)
-}
-
-const convertGeoCoordData = (data) => {
-    let res = [];
-    for (var i = 0; i < data.length; i++) {
-        let dataItem = data[i];
-        let from = metaCoord[dataItem[0].code]
-        let to = metaCoord[dataItem[1].code]
-        if (!from || !to) {
-            continue
-        }
-        res.push({
-            fromName: dataItem[0].name,
-            toName: dataItem[1].name,
-            numValue: dataItem[1].value,
-            coords: [from, to],
-        });
-    }
-    return res;
-}
-
-const setSelectedArea = (data) => {
-    let regions = [];
-    regions.push(cloneDeep(defaultMapRegionOptions.value));
-
-    let codes = []
-    data.forEach((item) => {
-        codes.push(item[0].code)
-        codes.push(item[1].code)
-    });
-    for (let code of uniq(codes)) {
-        let name = mapMetaFull[code]
-        if (!name) {
-            continue
-        }
-        regions.push({
-            name: name,
-            itemStyle: {
-                areaColor: '#E6F0FF',
-                label: {show: true}
-            },
+            fontSize: 16,
+            color: '#f9fcff',
+            fontWeight: 600
+         },
+         emphasis: {
             label: {
-                show: true
+               show: true,
+               fontSize: 16,
+               color: '#f9fcff',
+               fontWeight: 600
+            },
+            itemStyle: {
+               color: '#539efe',
+               borderWidth: 1,
+               borderColor: '#4fdcf7'
             }
-        })
+         }
+        // show: true,
+        // viewControl: {
+        //   autoRotate: true,
+        //   autoRotateAfterStill: 3,
+        //   distance: 120,
+        //   minAlpha: 5, // 上下旋转的最小 alpha 值。即视角能旋转到达最上面的角度。[ default: 5 ]
+        //   maxBeta: 360, // 左右旋转的最大 beta 值。即视角能旋转到达最右的角度。[ default: 80 ]
+        //   animation: true, // 是否开启动画。[ default: true ]
+        //   animationDurationUpdate: 1000, // 过渡动画的时长。[ default: 1000 ]
+        //   animationEasingUpdate: "cubicInOut" // 过渡动画的缓动效果。[ default: cubicInOut ]
+        // },
+        // itemStyle: {
+        //   color: {
+        //     image: image,
+        //     repeat: 'repeat'
+        //   },
+        //   borderColor: 'rgba(226, 230, 245, 1)',
+        //   borderWidth: 2,
+        // },
+        // emphasis: {
+        //   itemStyle: {
+        //     color: {
+        //       image: bgSelectedImg,
+        //       repeat: 'repeat'
+        //     },
+        //     areaColor: '#E6F0FF',
+        //     borderColor: '#A5B0E5',
+        //     borderWidth: 1,
+        //     shadowColor: 'rgba(9, 41, 121, 0.5)',
+        //     shadowOffsetY: 5,
+        //   },
+        // },
+        // shading: "lambert",
+        // light: {
+        //   //光照阴影
+        //   main: {
+        //     // color: "#fff", //光照颜色
+        //     intensity: 1, //光照强度
+        //     //shadowQuality: 'high', //阴影亮度
+        //     shadow: true, //是否显示阴影
+        //     shadowQuality: "medium", //阴影质量 ultra //阴影亮度
+        //     alpha: 55,
+        //     beta: 10
+        //   },
+        //   ambient: {
+        //     intensity: 0.7
+        //   }
+        // }
+      },
+      series: [
+        {
+          type: 'scatter',
+          coordinateSystem: 'geo',
+          symbol: `image://${locationImg}`,
+          symbolSize: 30,
+          legendHoverLink: true,
+          distance: 1,
+          labelLine: {
+            show: true,
+            length: 30,
+            lineStyle: {
+              type: 'dashed',
+              color: '#1E5EFF',
+              dashOffset: 5,
+              opacity: 0.6
+            }
+          },
+          label: {
+            formatter(value: any) {
+              return `{name|${value.data.name}}{ant|}`;
+            },
+            rich: {
+              name: {
+                fontSize: 16,
+              }
+            },
+            show: true,
+            offset: [0, -60], //偏移设置
+            lineHeight: 23,
+            borderWidth: 1,
+            backgroundColor: '#ffffff',
+            shadowColor: 'rgba(18,14,43,0.2)',
+            padding: [6, 10],
+            shadowBlur: 10,
+            color: '#646696',
+            borderRadius: 6,
+          },
+          data: projectList.value,
+          zlevel: 5,
+        }
+      ]
     }
-    mapRegions.value = regions
-}
-
-
-const handleMapSectionClick = (params) => {
-    const code = mapMetaReverse[params.name]
-    if (!code) return
-    currentMapCode.value = code
-    mapChart.value.setOption(generateMapOption(), true)
-    // fetchMapSeries(code)
-}
-
-const handleMapSectionHover = (params) => {
-    if(params.name !== lastVisitSection.value) {
-        lastVisitSection.value = params.name
-        // const code = mapMetaReverse[params.name]
-    }
-}
+  }
 
 const init = () => {
-    mapChart.value = echarts.init(mapRef.value, null, {renderer: 'svg'})
-    mapChart.value.setOption(generateMapOption())
-    // mapChart.value.on("click", () => {})
-    mapChart.value.on("mouseover", handleMapSectionHover)
-    mapChart.value.on("mouseout", () => {
-        lastVisitSection.value = null
-    })
-
+  mapChart.value = echarts.init(mapRef.value, null, {renderer: 'svg'})
+  mapChart.value.setOption(generateMapOption())
 }
 
 onMounted(async () => {

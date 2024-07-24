@@ -10,6 +10,7 @@
   },
   "dependencies": {
     "echarts": "^5.5.1",
+    "echarts-gl": "^2.0.9",
     "lodash-es": "^4.17.21",
     "vue": "^3.4.33"
   },
